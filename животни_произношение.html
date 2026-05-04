@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Животни — Произношение</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#E8F4FD,#F0E8FF);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px}
+#app{width:380px;margin:0 auto;padding:10px 6px;text-align:center}
+#topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px}
+#counter{font-size:14px;font-weight:700;color:#6C5CE7;background:#EEEDFE;padding:6px 14px;border-radius:20px}
+#stars-wrap{font-size:14px;font-weight:700;color:#F9A825;background:#FFF9C4;padding:6px 14px;border-radius:20px}
+#card{background:#fff;border-radius:24px;box-shadow:0 6px 28px rgba(108,92,231,0.15);border:3px solid #E0DCFF;padding:28px 16px 22px;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+#animal-emoji{font-size:100px;line-height:1;margin-bottom:10px;transition:transform 0.3s}
+#animal-emoji.bounce{animation:bounce 0.6s ease}
+@keyframes bounce{0%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(0.9)}80%{transform:scale(1.15)}100%{transform:scale(1)}}
+#syllables{font-size:42px;font-weight:900;letter-spacing:4px;color:#2d2d2d;margin-bottom:8px;font-family:'Arial Black',Arial,sans-serif}
+.syl{display:inline-block;padding:0 2px}
+#mic-btn{width:86px;height:86px;border-radius:50%;border:none;font-size:38px;cursor:pointer;background:linear-gradient(135deg,#00B894,#00CEC9);box-shadow:0 4px 16px rgba(0,184,148,0.4);transition:transform 0.15s,box-shadow 0.15s;margin:10px 0}
+#mic-btn:hover{transform:scale(1.05)}
+#mic-btn:active{transform:scale(0.93)}
+#mic-btn.listening{animation:pulse 1s infinite;background:linear-gradient(135deg,#E17055,#D63031)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(225,112,85,0.5)}70%{box-shadow:0 0 0 16px rgba(225,112,85,0)}100%{box-shadow:0 0 0 0 rgba(225,112,85,0)}}
+#status{font-size:13px;font-weight:700;color:#888;margin-bottom:8px;min-height:20px}
+#skip-btn{background:#FFF9C4;border:2px solid #F9A825;color:#7A5800;font-size:13px;font-weight:700;border-radius:20px;padding:7px 20px;cursor:pointer;margin-top:4px}
+#skip-btn:hover{background:#FFF3A0}
+#result-overlay{display:none;position:absolute;inset:0;border-radius:22px;align-items:center;justify-content:center;flex-direction:column;font-size:24px;font-weight:900;z-index:10}
+#result-overlay.show{display:flex}
+#result-overlay.good{background:rgba(0,184,148,0.92);color:#fff}
+#result-overlay.bad{background:rgba(214,63,49,0.88);color:#fff}
+#result-emoji{font-size:70px;margin-bottom:10px}
+.cstar{position:fixed;pointer-events:none;font-size:24px;animation:fall 1.3s ease forwards;z-index:9999}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0deg) scale(1)}100%{opacity:0;transform:translateY(130px) rotate(360deg) scale(0.3)}}
+#end-screen{display:none;text-align:center;padding:24px 16px;background:#fff;border-radius:24px;box-shadow:0 6px 28px rgba(108,92,231,0.15);border:3px solid #E0DCFF}
+#end-screen .big{font-size:80px;margin-bottom:8px}
+#end-screen h2{font-size:24px;font-weight:900;color:#6C5CE7;margin-bottom:8px}
+#end-screen p{font-size:16px;color:#555;margin-bottom:16px;line-height:1.5}
+#restart-btn{background:linear-gradient(135deg,#6C5CE7,#A29BFE);color:#fff;border:none;border-radius:24px;padding:12px 32px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(108,92,231,0.35)}
+#restart-btn:hover{transform:scale(1.04)}
+.chrome-note{background:#FFF9C4;border:2px solid #F9A825;border-radius:12px;padding:8px 12px;font-size:12px;color:#7A5800;margin-bottom:10px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="chrome-note">🎤 Работи най-добре в Chrome браузър</div>
+  <div id="topbar">
+    <div id="counter">ДУМА: 1 / 8</div>
+    <div id="stars-wrap">⭐ <span id="star-count">0</span></div>
+  </div>
+
+  <div id="card">
+    <div id="animal-emoji">🐱</div>
+    <div id="syllables"></div>
+    <button id="mic-btn" onclick="startListen()">🎤</button>
+    <div id="status">Натисни 🎤 и кажи думата</div>
+    <button id="skip-btn" onclick="skipWord()">ПРОПУСНИ →</button>
+    <div id="result-overlay">
+      <div id="result-emoji"></div>
+      <div id="result-text"></div>
+    </div>
+  </div>
+
+  <div id="end-screen">
+    <div class="big">🏆</div>
+    <h2>Браво! Свърши!</h2>
+    <p id="end-msg"></p>
+    <button id="restart-btn" onclick="restartGame()">Играй отново 🔄</button>
+  </div>
+</div>
+
+<script>
+const allAnimals = [
+  {emoji:'🐱', word:'КОТЕ',   syls:['КО','ТЕ']},
+  {emoji:'🐶', word:'КУЧЕ',   syls:['КУ','ЧЕ']},
+  {emoji:'🦁', word:'ЛЪВ',    syls:['ЛЪВ']},
+  {emoji:'🐻', word:'МЕЧКА',  syls:['МЕЧ','КА']},
+  {emoji:'🐟', word:'РИБА',   syls:['РИ','БА']},
+  {emoji:'🐰', word:'ЗАЙЧЕ',  syls:['ЗАЙ','ЧЕ']},
+  {emoji:'🐷', word:'ПРАСЕ',  syls:['ПРА','СЕ']},
+  {emoji:'🐦', word:'ПТИЦА',  syls:['ПТИ','ЦА']},
+];
+
+const words = allAnimals.filter(a => a.syls.length <= 2);
+let idx=0, stars=0, recognition=null, listening=false;
+
+function renderWord(){
+  const w=words[idx];
+  document.getElementById('animal-emoji').textContent=w.emoji;
+  document.getElementById('animal-emoji').classList.remove('bounce');
+  const html=w.syls.map((s,i)=>
+    `<span class="syl">${s}</span>${i<w.syls.length-1?'<span style="color:#A29BFE;font-size:30px;font-weight:400"> - </span>':''}`
+  ).join('');
+  document.getElementById('syllables').innerHTML=html;
+  document.getElementById('counter').textContent=`ДУМА: ${idx+1} / ${words.length}`;
+  document.getElementById('status').textContent='Натисни 🎤 и кажи думата';
+  const ov=document.getElementById('result-overlay');
+  ov.className=''; ov.style.display='none';
+  document.getElementById('mic-btn').className='';
+  document.getElementById('mic-btn').textContent='🎤';
+  listening=false;
+}
+
+function startListen(){
+  if(listening) return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('status').textContent='Нужен е Chrome браузър за микрофона!';
+    return;
+  }
+  recognition=new SR();
+  recognition.lang='bg-BG';
+  recognition.interimResults=false;
+  recognition.maxAlternatives=6;
+  listening=true;
+  document.getElementById('mic-btn').classList.add('listening');
+  document.getElementById('mic-btn').textContent='🔴';
+  document.getElementById('status').textContent='Слушам... кажи думата!';
+
+  recognition.onresult=function(e){
+    const results=Array.from(e.results[0]).map(r=>r.transcript.toUpperCase().trim());
+    const target=words[idx].word;
+    const correct=results.some(r=>r===target||r.includes(target)||levenshtein(r,target)<=2);
+    handleResult(correct);
+  };
+  recognition.onerror=function(){
+    document.getElementById('status').textContent='Не чух — опитай пак 🎤';
+    document.getElementById('mic-btn').className='';
+    document.getElementById('mic-btn').textContent='🎤';
+    listening=false;
+  };
+  recognition.onend=function(){
+    document.getElementById('mic-btn').className='';
+    document.getElementById('mic-btn').textContent='🎤';
+    listening=false;
+  };
+  recognition.start();
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function handleResult(correct){
+  listening=false;
+  document.getElementById('mic-btn').className='';
+  document.getElementById('mic-btn').textContent='🎤';
+  const ov=document.getElementById('result-overlay');
+  ov.style.display='flex';
+  if(correct){
+    ov.className='show good';
+    document.getElementById('result-emoji').textContent='⭐';
+    document.getElementById('result-text').textContent='Браво!';
+    document.getElementById('animal-emoji').classList.add('bounce');
+    stars++;
+    document.getElementById('star-count').textContent=stars;
+    playSound('good');
+    confetti();
+    setTimeout(nextWord,1500);
+  } else {
+    ov.className='show bad';
+    document.getElementById('result-emoji').textContent='💪';
+    document.getElementById('result-text').textContent='Опитай пак!';
+    playSound('bad');
+    setTimeout(()=>{ov.style.display='none';ov.className='';
+      document.getElementById('status').textContent='Опитай отново 🎤';
+    },1300);
+  }
+}
+
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(type==='good'){
+      [523,659,784,1047].forEach((f,i)=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.frequency.value=f;o.type='sine';
+        g.gain.setValueAtTime(0.3,ctx.currentTime+i*0.13);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.13+0.18);
+        o.start(ctx.currentTime+i*0.13);o.stop(ctx.currentTime+i*0.13+0.18);
+      });
+    } else {
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=200;o.type='sawtooth';
+      g.gain.setValueAtTime(0.2,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+0.35);
+    }
+  }catch(e){}
+}
+
+function confetti(){
+  const em=['⭐','🌟','✨','🎉','💛','🎊'];
+  for(let i=0;i<14;i++){
+    setTimeout(()=>{
+      const el=document.createElement('span');
+      el.className='cstar';
+      el.textContent=em[Math.floor(Math.random()*em.length)];
+      el.style.left=Math.random()*90+'vw';
+      el.style.top=Math.random()*40+10+'vh';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1400);
+    },i*70);
+  }
+}
+
+function nextWord(){
+  idx++;
+  if(idx>=words.length){showEnd();return;}
+  renderWord();
+}
+
+function skipWord(){
+  if(recognition) try{recognition.stop();}catch(e){}
+  listening=false;
+  nextWord();
+}
+
+function showEnd(){
+  document.getElementById('card').style.display='none';
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('end-screen').style.display='block';
+  const pct=Math.round(stars/words.length*100);
+  let msg='';
+  if(pct>=80) msg=`Получи ${stars} от ${words.length} звездички! Чудесно! 🌟`;
+  else if(pct>=50) msg=`Получи ${stars} от ${words.length} звездички! Добра работа! 💪`;
+  else msg=`Получи ${stars} от ${words.length} звездички! Продължавай да тренираш! 😊`;
+  document.getElementById('end-msg').textContent=msg;
+  confetti();setTimeout(confetti,600);
+}
+
+function restartGame(){
+  idx=0;stars=0;
+  document.getElementById('star-count').textContent='0';
+  document.getElementById('card').style.display='flex';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('end-screen').style.display='none';
+  renderWord();
+}
+
+renderWord();
+</script>
+</body>
+</html>
