@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Образователни игри</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#E8F4FD,#F0E8FF);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.page{width:400px;text-align:center}
+h1{font-size:24px;font-weight:900;color:#6C5CE7;margin-bottom:6px}
+.sub{font-size:14px;color:#888;margin-bottom:30px}
+.card{background:#fff;border-radius:20px;box-shadow:0 4px 20px rgba(108,92,231,0.13);border:2.5px solid #E0DCFF;padding:24px 20px;margin-bottom:16px;text-decoration:none;display:block;transition:transform 0.15s,box-shadow 0.15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(108,92,231,0.2)}
+.card .emoji{font-size:56px;margin-bottom:10px}
+.card h2{font-size:18px;font-weight:900;color:#333;margin-bottom:6px}
+.card p{font-size:13px;color:#888;line-height:1.5}
+.card.yellow{border-color:#F9A825}
+.card.green{border-color:#00B894}
+.badge{display:inline-block;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:8px}
+.badge.y{background:#FFF9C4;color:#7A5800}
+.badge.g{background:#E1F5EE;color:#085041}
+footer{margin-top:20px;font-size:11px;color:#bbb}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>🎮 Образователни игри</h1>
+  <p class="sub">Изберете игра</p>
+
+  <a class="card yellow" href="index.html">
+    <div class="emoji">🧍</div>
+    <h2>Части на тялото</h2>
+    <p>Плъзни думата до правилното място върху Мими и Бобо</p>
+    <span class="badge y">Drag & Drop</span>
+  </a>
+
+  <a class="card green" href="животни_произношение.html">
+    <div class="emoji">🐱🐶🦁</div>
+    <h2>Животни — Произношение</h2>
+    <p>Кажи думата на глас и спечели звездички</p>
+    <span class="badge g">🎤 Микрофон • Chrome</span>
+  </a>
+
+  <footer>За деца 3–6 години • Логопедични материали</footer>
+</div>
+</body>
+</html>
